@@ -8,9 +8,11 @@ from tensorboardX import SummaryWriter
 import shutil
 from tqdm import tqdm
 import numpy as np
+import cv2
 
 
 class Trainer:
+    mean = [103.939, 116.779, 123.68] 
     def __init__(self, model, loss, train_loader, test_loader, args):
         self.model = model
         self.args = args
@@ -67,6 +69,11 @@ class Trainer:
                 n = min(data.size(0), 8)
                 comparison = torch.cat([data[:n],
                                         recon_batch.view(-1,*self.args.image_shape)[:n]])
+                comparison[:, 0, :, :] += self.mean[0]
+                comparison[:, 1, :, :] += self.mean[1]
+                comparison[:, 2, :, :] += self.mean[2]
+                # for k in range(comparison.size()[0]):
+                #     comparison[k,:,:,:] = cv2.cvtColor(comparison[k,:,:,:], cv2.COLOR_BGR2RGB)
                 self.summary_writer.add_image('training_set/image', comparison, i, dataformats='NCHW')
 
         test_loss /= len(self.test_loader.dataset)
